@@ -7,8 +7,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = "postgresql://postgres:m773057153M%40%23%24778288150omy@db.eynczjpuvxnvmjdenul.supabase.co:5432/postgres"
-  directUrl = "postgresql://postgres:m773057153M%40%23%24778288150omy@db.eynczjpuvxnvmjdenul.supabase.co:5432/postgres"
+  url       = "postgresql://postgres:m773057153M%40%23%24778288150omy@db.eynczjpuvxnvmjdenul.supabase.co:5432/postgres?sslmode=require"
+  directUrl = "postgresql://postgres:m773057153M%40%23%24778288150omy@db.eynczjpuvxnvmjdenul.supabase.co:5432/postgres?sslmode=require"
 }
 
 // نموذج المستخدمين
