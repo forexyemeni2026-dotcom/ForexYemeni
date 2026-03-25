@@ -64,8 +64,13 @@ export async function GET() {
 
   try {
     // Test 4: Environment check
+    const dbUrl = process.env.DATABASE_URL || '';
     results.environment = {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
+      databaseUrlLength: dbUrl.length,
+      databaseUrlStart: dbUrl.substring(0, 30) + '...',
+      databaseUrlFirstChars: dbUrl.substring(0, 15),
+      startsWithPostgres: dbUrl.startsWith('postgres'),
       nodeEnv: process.env.NODE_ENV,
       vercelEnv: process.env.VERCEL_ENV
     };
