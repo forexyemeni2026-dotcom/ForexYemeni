@@ -2,12 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = "postgresql://postgres:m773057153M%40%23%24778288150omy@db.eynczjpuvxnvmjdnenul.supabase.co:5432/postgres"
+  directUrl = "postgresql://postgres:m773057153M%40%23%24778288150omy@db.eynczjpuvxnvmjdnenul.supabase.co:5432/postgres"
 }
 
 // نموذج المستخدمين
