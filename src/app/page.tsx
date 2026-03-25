@@ -561,100 +561,153 @@ export default function ForexYemeniApp() {
   // صفحة تسجيل الدخول
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-white p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="w-8 h-8 text-white" />
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        {/* الخلفية */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url(/trading-bg.png)' }}
+        />
+        {/* طبقة تعتيم */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-emerald-900/85" />
+        
+        {/* الشموع المتحركة */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* شموع خضراء */}
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={`green-${i}`}
+              className="absolute animate-pulse"
+              style={{
+                left: `${10 + i * 12}%`,
+                bottom: `${20 + Math.random() * 30}%`,
+                animationDelay: `${i * 0.3}s`,
+                animationDuration: '2s'
+              }}
+            >
+              <div className="w-1 h-1 bg-emerald-400/50 rounded-full mx-auto" />
+              <div className="w-3 h-16 sm:h-24 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-sm shadow-lg shadow-emerald-500/30" />
+              <div className="w-1 h-1 bg-emerald-400/50 rounded-full mx-auto" />
             </div>
-            <CardTitle className="text-2xl">ForexYemeni</CardTitle>
-            <CardDescription>نظام إدارة توصيات الفوركس</CardDescription>
+          ))}
+          {/* شموع حمراء */}
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={`red-${i}`}
+              className="absolute animate-pulse"
+              style={{
+                left: `${5 + i * 15}%`,
+                bottom: `${25 + Math.random() * 25}%`,
+                animationDelay: `${i * 0.4 + 0.2}s`,
+                animationDuration: '2.5s'
+              }}
+            >
+              <div className="w-1 h-1 bg-red-400/50 rounded-full mx-auto" />
+              <div className="w-3 h-12 sm:h-20 bg-gradient-to-b from-red-500 to-red-600 rounded-sm shadow-lg shadow-red-500/30" />
+              <div className="w-1 h-1 bg-red-400/50 rounded-full mx-auto" />
+            </div>
+          ))}
+        </div>
+        
+        {/* بطاقة تسجيل الدخول */}
+        <Card className="w-full max-w-md relative z-10 mx-4 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+          <CardHeader className="text-center pb-2">
+            <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
+              <TrendingUp className="w-10 h-10 text-white" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-white mb-1">ForexYemeni</CardTitle>
+            <CardDescription className="text-emerald-200 text-lg">تداول الفوريكس باحترافية</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={authMode} onValueChange={(v) => setAuthMode(v as 'login' | 'register')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
-                <TabsTrigger value="register">تسجيل جديد</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-white/10 border border-white/10">
+                <TabsTrigger value="login" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/70">تسجيل الدخول</TabsTrigger>
+                <TabsTrigger value="register" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/70">تسجيل جديد</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="login" className="mt-4">
+              <TabsContent value="login" className="mt-6">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                    <Label htmlFor="email" className="text-white/90">البريد الإلكتروني</Label>
                     <Input
                       id="email"
                       type="email"
                       value={loginForm.email}
                       onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                       placeholder="أدخل بريدك الإلكتروني"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-emerald-400"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">كلمة المرور</Label>
+                    <Label htmlFor="password" className="text-white/90">كلمة المرور</Label>
                     <Input
                       id="password"
                       type="password"
                       value={loginForm.password}
                       onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                       placeholder="أدخل كلمة المرور"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-emerald-400"
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600" disabled={isLoading}>
+                  <Button type="submit" className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-6 text-lg shadow-lg shadow-emerald-500/30" disabled={isLoading}>
                     {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
                   </Button>
                 </form>
               </TabsContent>
               
-              <TabsContent value="register" className="mt-4">
+              <TabsContent value="register" className="mt-6">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reg-name">الاسم الكامل</Label>
+                    <Label htmlFor="reg-name" className="text-white/90">الاسم الكامل</Label>
                     <Input
                       id="reg-name"
                       value={registerForm.name}
                       onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
                       placeholder="أدخل اسمك الكامل"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-emerald-400"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reg-email">البريد الإلكتروني</Label>
+                    <Label htmlFor="reg-email" className="text-white/90">البريد الإلكتروني</Label>
                     <Input
                       id="reg-email"
                       type="email"
                       value={registerForm.email}
                       onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
                       placeholder="أدخل بريدك الإلكتروني"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-emerald-400"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reg-password">كلمة المرور</Label>
+                    <Label htmlFor="reg-password" className="text-white/90">كلمة المرور</Label>
                     <Input
                       id="reg-password"
                       type="password"
                       value={registerForm.password}
                       onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
                       placeholder="أدخل كلمة المرور"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-emerald-400"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reg-phone">رقم الهاتف (اختياري)</Label>
+                    <Label htmlFor="reg-phone" className="text-white/90">رقم الهاتف (اختياري)</Label>
                     <Input
                       id="reg-phone"
                       value={registerForm.phone}
                       onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
                       placeholder="أدخل رقم هاتفك"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-emerald-400"
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600" disabled={isLoading}>
+                  <Button type="submit" className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-6 text-lg shadow-lg shadow-emerald-500/30" disabled={isLoading}>
                     {isLoading ? 'جاري الإرسال...' : 'إرسال طلب التسجيل'}
                   </Button>
                 </form>
-                <p className="text-xs text-gray-500 text-center mt-4">
+                <p className="text-xs text-emerald-200/70 text-center mt-4">
                   سيتم مراجعة طلبك من قبل الإدارة
                 </p>
               </TabsContent>
