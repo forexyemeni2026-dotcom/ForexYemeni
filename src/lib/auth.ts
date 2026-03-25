@@ -1,41 +1,51 @@
 import { db } from './db';
-import crypto from 'crypto';
 
-// تشفير كلمة المرور بـ SHA-256
-export function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
+// تشفير كلمة المرور بـ SHA-256 (متوافق مع جميع البيئات)
+export async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // إنشاء رمز جلسة عشوائي
 export function generateToken(): string {
-  return crypto.randomBytes(32).toString('hex');
+  return Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 // التحقق من صلاحية الجلسة
 export async function validateSession(token: string) {
   if (!token) return null;
 
-  const session = await db.session.findUnique({
-    where: { token },
-    include: { user: true },
-  });
+  try {
+    const session = await db.session.findUnique({
+      where: { token },
+      include: { user: true },
+    });
 
-  if (!session) return null;
+    if (!session) return null;
 
-  // التحقق من انتهاء صلاحية الجلسة
-  if (new Date() > session.expiresAt) {
-    await db.session.delete({ where: { id: session.id } });
+    // التحقق من انتهاء صلاحية الجلسة
+    if (new Date() > session.expiresAt) {
+      await db.session.delete({ where: { id: session.id } });
+      return null;
+    }
+
+    return session;
+  } catch (error) {
+    console.error('Session validation error:', error);
     return null;
   }
-
-  return session;
 }
 
 // إنشاء جلسة جديدة
 export async function createSession(userId: string) {
   const token = generateToken();
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // الجلسة صالحة لمدة أسبوع
+  expiresAt.setDate(expiresAt.getDate() + 7);
 
   const session = await db.session.create({
     data: {
@@ -59,39 +69,49 @@ export async function deleteSession(token: string) {
 
 // التحقق من بيانات الدخول
 export async function authenticateUser(email: string, password: string) {
-  const hashedPassword = hashPassword(password);
+  try {
+    const hashedPassword = await hashPassword(password);
 
-  const user = await db.user.findUnique({
-    where: { email },
-  });
+    const user = await db.user.findUnique({
+      where: { email },
+    });
 
-  if (!user) return null;
+    if (!user) return null;
 
-  if (user.password !== hashedPassword) return null;
+    if (user.password !== hashedPassword) return null;
 
-  if (!user.isActive) return { error: 'تم تعطيل حسابك. يرجى التواصل مع الإدارة.' };
+    if (!user.isActive) return { error: 'تم تعطيل حسابك. يرجى التواصل مع الإدارة.' };
 
-  return user;
+    return user;
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return null;
+  }
 }
 
 // إنشاء الأدمن الافتراضي
 export async function createDefaultAdmin() {
-  const existingAdmin = await db.user.findUnique({
-    where: { email: 'admin@forexyemeni.com' },
-  });
-
-  if (!existingAdmin) {
-    await db.user.create({
-      data: {
-        email: 'admin@forexyemeni.com',
-        name: 'مدير النظام',
-        password: hashPassword('admin123'),
-        role: 'admin',
-        isMainAdmin: true,
-        isActive: true,
-      },
+  try {
+    const existingAdmin = await db.user.findUnique({
+      where: { email: 'admin@forexyemeni.com' },
     });
-    console.log('تم إنشاء حساب الأدمن الافتراضي');
+
+    if (!existingAdmin) {
+      const hashedPassword = await hashPassword('admin123');
+      await db.user.create({
+        data: {
+          email: 'admin@forexyemeni.com',
+          name: 'مدير النظام',
+          password: hashedPassword,
+          role: 'admin',
+          isMainAdmin: true,
+          isActive: true,
+        },
+      });
+      console.log('تم إنشاء حساب الأدمن الافتراضي');
+    }
+  } catch (error) {
+    console.error('Error creating default admin:', error);
   }
 }
 
@@ -99,18 +119,23 @@ export async function createDefaultAdmin() {
 export async function getCurrentUser(cookieHeader: string | null) {
   if (!cookieHeader) return null;
 
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map(c => {
-      const [key, ...v] = c.trim().split('=');
-      return [key, v.join('=')];
-    })
-  );
+  try {
+    const cookies = Object.fromEntries(
+      cookieHeader.split(';').map(c => {
+        const [key, ...v] = c.trim().split('=');
+        return [key, v.join('=')];
+      })
+    );
 
-  const token = cookies.session_token;
-  if (!token) return null;
+    const token = cookies.session_token;
+    if (!token) return null;
 
-  const session = await validateSession(token);
-  return session?.user || null;
+    const session = await validateSession(token);
+    return session?.user || null;
+  } catch (error) {
+    console.error('Get current user error:', error);
+    return null;
+  }
 }
 
 // التحقق من صلاحيات الأدمن
