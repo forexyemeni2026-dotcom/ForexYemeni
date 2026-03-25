@@ -1,19 +1,14 @@
 import { db } from './db';
+import crypto from 'crypto';
 
-// تشفير كلمة المرور بـ SHA-256 (متوافق مع جميع البيئات)
-export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// تشفير كلمة المرور بـ SHA-256 (يعمل في جميع البيئات)
+export function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password).digest('hex');
 }
 
 // إنشاء رمز جلسة عشوائي
 export function generateToken(): string {
-  return Array.from(crypto.getRandomValues(new Uint8Array(32)))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+  return crypto.randomBytes(32).toString('hex');
 }
 
 // التحقق من صلاحية الجلسة
@@ -70,7 +65,7 @@ export async function deleteSession(token: string) {
 // التحقق من بيانات الدخول
 export async function authenticateUser(email: string, password: string) {
   try {
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = hashPassword(password);
 
     const user = await db.user.findUnique({
       where: { email },
@@ -97,12 +92,11 @@ export async function createDefaultAdmin() {
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await hashPassword('admin123');
       await db.user.create({
         data: {
           email: 'admin@forexyemeni.com',
           name: 'مدير النظام',
-          password: hashedPassword,
+          password: hashPassword('admin123'),
           role: 'admin',
           isMainAdmin: true,
           isActive: true,
