@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// نموذج المستخدمين
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  password     String
+  phone        String?
+  role         String   @default("user") // admin أو user
+  isActive     Boolean  @default(true)
+  isMainAdmin  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // العلاقات
+  sentMessages        Message[]        @relation("SentMessages")
+  receivedMessages    Message[]        @relation("ReceivedMessages")
+  notifications       Notification[]
+  recommendations     Recommendation[]
+  sessions            Session[]
+  processedRequests   RegistrationRequest[] @relation("ProcessedRequests")
+}
+
+// نموذج طلبات الانضمام
+model RegistrationRequest {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  phone       String?
+  status      String   @default("pending") // pending, approved, rejected
+  notes       String?
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
+  processedBy String?
+
+  // العلاقات
+  processedByUser User?  @relation("ProcessedRequests", fields: [processedBy], references: [id])
+}
+
+// نموذج التوصيات
+model Recommendation {
+  id          String    @id @default(cuid())
+  symbol      String    // زوج العملات مثل EURUSD
+  action      String    // buy أو sell
+  price       Float     // السعر الحالي
+  stopLoss    Float?    // وقف الخسارة
+  takeProfit  Float?    // جني الأرباح
+  timeframe   String?   // الإطار الزمني
+  notes       String?   // ملاحظات
+  source      String    @default("manual") // tradingview أو manual
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  // العلاقات
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
+}
+
+// نموذج الرسائل
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  // العلاقات
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+// نموذج الإشعارات
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  type      String   // message, recommendation, system
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // العلاقات
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// نموذج الجلسات
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // العلاقات
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
