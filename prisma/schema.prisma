@@ -116,7 +116,7 @@ model Session {
 
   // العلاقات
   userId    String   @map("userId")
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("Session")
 }
