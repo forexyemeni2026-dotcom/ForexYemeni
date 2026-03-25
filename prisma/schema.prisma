@@ -12,16 +12,16 @@ datasource db {
 
 // نموذج المستخدمين
 model User {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   email        String   @unique
   name         String
   password     String
   phone        String?
-  role         String   @default("user") // admin أو user
-  isActive     Boolean  @default(true)
-  isMainAdmin  Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         String   @default("user")
+  isActive     Boolean  @default(true) @map("isActive")
+  isMainAdmin  Boolean  @default(false) @map("isMainAdmin")
+  createdAt    DateTime @default(now()) @map("createdAt")
+  updatedAt    DateTime @updatedAt @map("updatedAt")
 
   // العلاقات
   sentMessages        Message[]        @relation("SentMessages")
@@ -30,81 +30,93 @@ model User {
   recommendations     Recommendation[]
   sessions            Session[]
   processedRequests   RegistrationRequest[] @relation("ProcessedRequests")
+
+  @@map("User")
 }
 
 // نموذج طلبات الانضمام
 model RegistrationRequest {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   name        String
   email       String   @unique
   password    String
   phone       String?
-  status      String   @default("pending") // pending, approved, rejected
+  status      String   @default("pending")
   notes       String?
-  createdAt   DateTime @default(now())
-  processedAt DateTime?
-  processedBy String?
+  createdAt   DateTime @default(now()) @map("createdAt")
+  processedAt DateTime? @map("processedAt")
+  processedBy String?  @map("processedBy")
 
   // العلاقات
   processedByUser User?  @relation("ProcessedRequests", fields: [processedBy], references: [id])
+
+  @@map("RegistrationRequest")
 }
 
 // نموذج التوصيات
 model Recommendation {
-  id          String    @id @default(cuid())
-  symbol      String    // زوج العملات مثل EURUSD
-  action      String    // buy أو sell
-  price       Float     // السعر الحالي
-  stopLoss    Float?    // وقف الخسارة
-  takeProfit  Float?    // جني الأرباح
-  timeframe   String?   // الإطار الزمني
-  notes       String?   // ملاحظات
-  source      String    @default("manual") // tradingview أو manual
-  isRead      Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  expiresAt   DateTime?
+  id          String    @id @default(uuid())
+  symbol      String
+  action      String
+  price       Float
+  stopLoss    Float?    @map("stopLoss")
+  takeProfit  Float?    @map("takeProfit")
+  timeframe   String?
+  notes       String?
+  source      String    @default("manual")
+  isRead      Boolean   @default(false) @map("isRead")
+  createdAt   DateTime  @default(now()) @map("createdAt")
+  expiresAt   DateTime? @map("expiresAt")
 
   // العلاقات
-  userId      String?
+  userId      String?   @map("userId")
   user        User?     @relation(fields: [userId], references: [id])
+
+  @@map("Recommendation")
 }
 
 // نموذج الرسائل
 model Message {
-  id         String   @id @default(cuid())
+  id         String   @id @default(uuid())
   content    String
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  isRead     Boolean  @default(false) @map("isRead")
+  createdAt  DateTime @default(now()) @map("createdAt")
 
   // العلاقات
-  senderId   String
+  senderId   String   @map("senderId")
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
-  receiverId String
+  receiverId String   @map("receiverId")
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@map("Message")
 }
 
 // نموذج الإشعارات
 model Notification {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   title     String
   content   String
-  type      String   // message, recommendation, system
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  type      String
+  isRead    Boolean  @default(false) @map("isRead")
+  createdAt DateTime @default(now()) @map("createdAt")
 
   // العلاقات
-  userId    String
+  userId    String   @map("userId")
   user      User     @relation(fields: [userId], references: [id])
+
+  @@map("Notification")
 }
 
 // نموذج الجلسات
 model Session {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  expiresAt DateTime @map("expiresAt")
+  createdAt DateTime @default(now()) @map("createdAt")
 
   // العلاقات
-  userId    String
+  userId    String   @map("userId")
   user      User     @relation(fields: [userId], references: [id])
+
+  @@map("Session")
 }
